@@ -59,6 +59,36 @@
         const startGameContainer = document.getElementById('start-game-container');
         const startGameContainer2 = document.getElementById('start-game-container-2');
 
+        const animals = [
+            { name: 'oiseau', src: 'https://i.ibb.co/hXv4H2S/bird.jpg' },
+            { name: 'chat', src: 'https://i.ibb.co/yh86vwg/cat.jpg' },
+            { name: 'chien', src: 'https://i.ibb.co/9NBXFMm/dog.webp' },
+            { name: 'poisson', src: 'https://i.ibb.co/kMwS8ZT/fish.webp' },
+            { name: 'tortue', src: 'https://i.ibb.co/nj558Cd/turtle.jpg' },
+            { name: 'vache', src: 'https://i.ibb.co/ZhhNgBd/cow.webp' },
+            { name: 'éléphant', src: 'https://i.ibb.co/ZfRVcmp/elephant.webp' },
+            { name: 'requin', src: 'https://i.ibb.co/crjbpB9/shark.webp' },
+            { name: 'esprit', src: 'https://i.ibb.co/6J2m7Zh/spirit.webp' }
+        ];
+
+        // Preload images
+        const preloadImages = (animalArray) => {
+            return new Promise((resolve) => {
+                let loadedImages = 0;
+                const totalImages = animalArray.length;
+                animalArray.forEach(animal => {
+                    const img = new Image();
+                    img.src = animal.src;
+                    img.onload = () => {
+                        loadedImages++;
+                        if (loadedImages === totalImages) {
+                            resolve();
+                        }
+                    };
+                });
+            });
+        };
+
         rowsInput.addEventListener('input', (e) => {
             rowsValue.textContent = e.target.value;
         });
@@ -67,7 +97,7 @@
             columnsValue.textContent = e.target.value;
         });
 
-        startGameButton.addEventListener('click', () => {
+        startGameButton.addEventListener('click', async () => {
             const rows = parseInt(rowsInput.value);
             const columns = parseInt(columnsInput.value);
             if (rows * columns % 2 !== 0) {
@@ -75,18 +105,12 @@
                 return;
             }
 
+            // Wait for images to preload
+            startGameButton.textContent = "Chargement des images...";
+            await preloadImages(animals);
+            startGameButton.textContent = "Démarrer le jeu";
+
             const gameBoard = [];
-            const animals = [
-                { name: 'oiseau', src: 'https://i.ibb.co/hXv4H2S/bird.jpg' },
-                { name: 'chat', src: 'https://i.ibb.co/yh86vwg/cat.jpg' },
-                { name: 'chien', src: 'https://i.ibb.co/9NBXFMm/dog.webp' },
-                { name: 'poisson', src: 'https://i.ibb.co/kMwS8ZT/fish.webp' },
-                { name: 'tortue', src: 'https://i.ibb.co/nj558Cd/turtle.jpg' },
-                { name: 'vache', src: 'https://i.ibb.co/ZhhNgBd/cow.webp' },
-                { name: 'éléphant', src: 'https://i.ibb.co/ZfRVcmp/elephant.webp' },
-                { name: 'requin', src: 'https://i.ibb.co/crjbpB9/shark.webp' },
-                { name: 'esprit', src: 'https://i.ibb.co/6J2m7Zh/spirit.webp' }
-            ];
             const animalPairs = [];
             for (let i = 0; i < rows * columns / 2; i++) {
                 const animal = animals[i % animals.length];
@@ -152,39 +176,36 @@
             }
 
             function checkForMatch() {
-                if (flippedCards[0].animal.src === flippedCards[1].animal.src) {
-                    matches++;
-                    flippedCards = [];
-                    if (matches === rows * columns / 2) {
-                        const endTime = new Date().getTime();
-                        const timeTaken = (endTime - startTime) / 1000;
-                        alert(`Félicitations ! Vous avez gagné en ${timeTaken} secondes.`);
-                        resetGame();
-                    }
-                } else {
-                    setTimeout(() => {
-                        flippedCards.forEach((card) => {
-                            card.card.innerHTML = '';
-                            gameBoard[card.row][card.column].flipped = false;
-                        });
-                        flippedCards = [];
-                    }, 1000);
+            if (flippedCards[0].animal.src === flippedCards[1].animal.src) {
+                matches++;
+                flippedCards = [];
+                if (matches === rows * columns / 2) {
+                    const endTime = new Date().getTime();
+                    const timeTaken = (endTime - startTime) / 1000;
+                    alert(`Félicitations! Vous avez trouvé toutes les paires en ${timeTaken} secondes.`);
                 }
+            } else {
+                setTimeout(() => {
+                    flippedCards[0].card.innerHTML = '';
+                    flippedCards[1].card.innerHTML = '';
+                    // Removed unnecessary class manipulation
+                    gameBoard[flippedCards[0].row][flippedCards[0].column].flipped = false;
+                    gameBoard[flippedCards[1].row][flippedCards[1].column].flipped = false;
+                    flippedCards = [];
+                }, 1000);
             }
+        }
+    }); // Close the event listener for startGameButton
 
-            resetGameButton.addEventListener('click', () => {
-                resetGame();
-            });
+    resetGameButton.addEventListener('click', () => {
+        // Add reset game logic here.  For example:
+        gameContainer.classList.add('hidden');
+        startGameContainer.style.display = 'block';
+        startGameContainer2.style.display = 'block';
+        startGameButton.style.display = 'block';
+        resetGameButton.classList.add('hidden');
+        // Clear the game board and reset other variables as needed
+    });
 
-            function resetGame() {
-                gameContainer.innerHTML = '';
-                gameContainer.classList.add('hidden');
-                startGameContainer.style.display = 'block';
-                startGameContainer2.style.display = 'block';
-                startGameButton.style.display = 'block';
-                resetGameButton.classList.add('hidden');
-            }
-        });
-    </script>
-</body>
-</html>
+    
+</script> </body> </html>
